@@ -34,13 +34,19 @@ const AdminLogin: React.FC = () => {
       
       if (!adminDoc.exists() && userEmail && authorizedEmails.includes(userEmail)) {
         console.log('Bootstrapping admin account for:', userEmail);
-        const { setDoc, serverTimestamp } = await import('firebase/firestore');
-        await setDoc(adminDocRef, {
-          email: userEmail,
-          name: user.displayName || 'Administrator',
-          role: userEmail === 'godwinjijo789@gmail.com' ? 'owner' : 'admin',
-          createdAt: serverTimestamp()
-        });
+        try {
+          const { setDoc, serverTimestamp } = await import('firebase/firestore');
+          await setDoc(adminDocRef, {
+            email: userEmail,
+            name: user.displayName || 'Administrator',
+            role: 'owner', // Both are owners as requested
+            createdAt: serverTimestamp()
+          });
+          // Verify it was created
+          adminDoc = await getDoc(adminDocRef);
+        } catch (bootstrapErr) {
+          console.error('Bootstrap failed:', bootstrapErr);
+        }
         adminDoc = await getDoc(adminDocRef);
       }
       
