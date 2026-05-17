@@ -25,18 +25,20 @@ const AdminLogin: React.FC = () => {
       const result = await signInWithPopup(auth, provider);
       
       const user = result.user;
+      const userEmail = user.email?.toLowerCase();
       const adminDocRef = doc(db, 'admins', user.uid);
       let adminDoc = await getDoc(adminDocRef);
       
       // Auto-bootstrap for specific authorized emails
       const authorizedEmails = ['godwinjijo789@gmail.com', 'mohdsajith2005@gmail.com'];
       
-      if (!adminDoc.exists() && user.email && authorizedEmails.includes(user.email)) {
+      if (!adminDoc.exists() && userEmail && authorizedEmails.includes(userEmail)) {
+        console.log('Bootstrapping admin account for:', userEmail);
         const { setDoc, serverTimestamp } = await import('firebase/firestore');
         await setDoc(adminDocRef, {
-          email: user.email,
+          email: userEmail,
           name: user.displayName || 'Administrator',
-          role: user.email === 'godwinjijo789@gmail.com' ? 'owner' : 'admin',
+          role: userEmail === 'godwinjijo789@gmail.com' ? 'owner' : 'admin',
           createdAt: serverTimestamp()
         });
         adminDoc = await getDoc(adminDocRef);
