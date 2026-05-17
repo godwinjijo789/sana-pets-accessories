@@ -32,30 +32,35 @@ const AdminLogin: React.FC = () => {
       // Auto-bootstrap for specific authorized emails
       const authorizedEmails = ['godwinjijo789@gmail.com', 'mohdsajith2005@gmail.com'];
       
+      console.log('Logged in user:', user.email, 'UID:', user.uid);
+
       if (!adminDoc.exists() && userEmail && authorizedEmails.includes(userEmail)) {
-        console.log('Bootstrapping admin account for:', userEmail);
+        console.log('Attempting to bootstrap admin account for:', userEmail);
         try {
           const { setDoc, serverTimestamp } = await import('firebase/firestore');
           await setDoc(adminDocRef, {
             email: userEmail,
             name: user.displayName || 'Administrator',
-            role: 'owner', // Both are owners as requested
+            role: 'owner',
             createdAt: serverTimestamp()
           });
+          console.log('Bootstrap setDoc successful');
           // Verify it was created
           adminDoc = await getDoc(adminDocRef);
-        } catch (bootstrapErr) {
+          console.log('Bootstrap verification exists:', adminDoc.exists());
+        } catch (bootstrapErr: any) {
           console.error('Bootstrap failed:', bootstrapErr);
+          toast.error(`Admin registration failed: ${bootstrapErr.message}`);
         }
-        adminDoc = await getDoc(adminDocRef);
       }
       
       if (adminDoc.exists()) {
-        toast.success('Welcome back, Admin!');
+        toast.success(`Welcome back, ${adminDoc.data()?.name || 'Admin'}!`);
         navigate('/admin/dashboard');
       } else {
+        console.log('Access denied for user:', userEmail);
         await auth.signOut();
-        toast.error('Access denied. This account is not registered as an administrator.');
+        toast.error(`Access denied. ${userEmail} is not registered as an administrator.`);
       }
     } catch (error: any) {
       console.error(error);
