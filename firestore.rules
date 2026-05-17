@@ -1,0 +1,111 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email in ["godwinjijo789@gmail.com", "mohdsajith2005@gmail.com"]
+      ) && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidPet(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.breed is string && data.breed.size() > 0 &&
+             data.price is number && data.price >= 0 &&
+             data.images is list && data.images.size() > 0 && data.images.size() <= 6 &&
+             data.availability is bool;
+    }
+
+    function isValidAccessory(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.category is string && data.category.size() > 0 &&
+             data.price is number && data.price >= 0 &&
+             data.images is list && data.images.size() > 0 && data.images.size() <= 6;
+    }
+
+    function isValidReview(data) {
+      return data.accessoryId is string && isValidId(data.accessoryId) &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() <= 100 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() <= 2000;
+    }
+
+    function isValidEnquiry(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.email is string && data.email.matches('^[^@]+@[^@]+\\.[^@]+$') &&
+             data.message is string && data.message.size() > 0 && data.message.size() <= 5000;
+    }
+
+    // --- Collection Rules ---
+
+    // Pets
+    match /pets/{petId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidPet(incoming());
+      allow update: if isAdmin() && isValidPet(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'breed', 'age', 'gender', 'vaccination', 'price', 'description', 'availability', 'images', 'updatedAt']);
+      allow delete: if isAdmin();
+    }
+
+    // Accessories
+    match /accessories/{accId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidAccessory(incoming());
+      allow update: if isAdmin() && isValidAccessory(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'category', 'price', 'description', 'availability', 'images', 'updatedAt']);
+      allow delete: if isAdmin();
+    }
+
+    // Admins
+    match /admins/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId && isAdmin();
+      allow update: if isAdmin() && request.auth.uid == userId;
+    }
+
+    // Reviews
+    match /reviews/{reviewId} {
+      allow get, list: if true;
+      allow create: if isValidReview(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Enquiries
+    match /enquiries/{enqId} {
+      allow create: if isValidEnquiry(incoming());
+      allow get, list, update, delete: if isAdmin();
+    }
+
+    // Contact Info
+    match /contact/info {
+      allow get: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

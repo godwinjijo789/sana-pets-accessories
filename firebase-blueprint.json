@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "Pet": {
+      "title": "Pet",
+      "description": "A pet available for adoption or sale",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "breed": { "type": "string" },
+        "age": { "type": "string" },
+        "gender": { "type": "string" },
+        "vaccination": { "type": "string" },
+        "price": { "type": "number" },
+        "description": { "type": "string" },
+        "availability": { "type": "boolean" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "breed", "price", "images", "availability"]
+    },
+    "Accessory": {
+      "title": "Accessory",
+      "description": "Pet care product or accessory",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "description": { "type": "string" },
+        "availability": { "type": "boolean" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "category", "price", "images"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "User review for an accessory",
+      "type": "object",
+      "properties": {
+        "accessoryId": { "type": "string" },
+        "userName": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["accessoryId", "userName", "rating", "comment"]
+    },
+    "Enquiry": {
+      "title": "Enquiry",
+      "description": "Customer enquiry or adoption request",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["unread", "read"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message"]
+    },
+    "ContactInfo": {
+      "title": "ContactInfo",
+      "description": "Store contact details and social links",
+      "type": "object",
+      "properties": {
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "socials": {
+          "type": "object",
+          "properties": {
+            "instagram": { "type": "string" },
+            "facebook": { "type": "string" },
+            "whatsapp": { "type": "string" },
+            "twitter": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "pets": {
+      "schema": "Pet",
+      "description": "Collection of pets"
+    },
+    "accessories": {
+      "schema": "Accessory",
+      "description": "Collection of pet accessories"
+    },
+    "reviews": {
+      "schema": "Review",
+      "description": "Collection of product reviews"
+    },
+    "enquiries": {
+      "schema": "Enquiry",
+      "description": "Collection of customer enquiries"
+    },
+    "contact/info": {
+      "schema": "ContactInfo",
+      "description": "Singleton document for store information"
+    }
+  }
+}
